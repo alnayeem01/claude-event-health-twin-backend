@@ -1,5 +1,5 @@
 const { Decision, Simulation } = require("../models");
-const { generateSimulationTimelines } = require("../services/llm");
+const { generateSimulationTimelines } = require("../services/bedrock");
 
 async function createSimulation(req, res) {
   const decisionText = req.validatedDecision;
@@ -32,13 +32,13 @@ async function createSimulation(req, res) {
     if (throttled) {
       return res.status(429).json({
         error:
-          "Model provider rate limit exceeded. Retry later or adjust quota / billing (Gemini AI Studio or AWS Bedrock).",
+          "Bedrock rate limit exceeded. Retry later or raise quotas in AWS.",
       });
     }
-    if (status === 404) {
+    if (status === 404 || err.name === "ValidationException") {
       return res.status(502).json({
         error:
-          "LLM model not found. Set GEMINI_MODEL (Gemini) or BEDROCK_MODEL_ID + AWS_REGION (Bedrock).",
+          "Bedrock model or region invalid. Set BEDROCK_MODEL_ID and AWS_REGION; enable the model in the Bedrock console.",
       });
     }
     return res.status(502).json({

@@ -117,13 +117,13 @@ async function main() {
     if (r.status !== 400) throw new Error(`expected 400, got ${r.status}`);
   });
 
-  const llmProvider = (process.env.LLM_PROVIDER || "gemini").toLowerCase();
-  const runLlmPost =
-    llmProvider === "bedrock" || Boolean(process.env.GEMINI_API_KEY);
+  const hasAwsCreds =
+    Boolean(process.env.AWS_ACCESS_KEY_ID) ||
+    Boolean(process.env.AWS_PROFILE) ||
+    Boolean(process.env.AWS_CONTAINER_CREDENTIALS_RELATIVE_URI);
 
-  if (runLlmPost) {
-    const label = llmProvider === "bedrock" ? "Bedrock" : "Gemini";
-    await check(`POST /api/simulation (${label})`, async () => {
+  if (hasAwsCreds) {
+    await check("POST /api/simulation (Bedrock)", async () => {
       const controller = new AbortController();
       const t = setTimeout(() => controller.abort(), 120_000);
       try {
@@ -160,7 +160,7 @@ async function main() {
     });
   } else {
     console.log(
-      "[smoke] SKIP POST /api/simulation — set GEMINI_API_KEY or LLM_PROVIDER=bedrock (+ AWS creds)"
+      "[smoke] SKIP POST /api/simulation — set AWS_ACCESS_KEY_ID + AWS_SECRET_ACCESS_KEY (or AWS_PROFILE) and AWS_REGION"
     );
   }
 

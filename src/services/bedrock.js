@@ -1,6 +1,6 @@
 const {
   BedrockRuntimeClient,
-  InvokeModelCommand,
+  ConverseCommand,
 } = require("@aws-sdk/client-bedrock-runtime");
 const {
   TIMELINE_SYSTEM_INSTRUCTION,
@@ -23,39 +23,47 @@ function getRegion() {
   ).trim();
 }
 
+function extractConverseText(response) {
+  const out = response.output;
+  if (!out || typeof out !== "object") {
+    throw new Error("Empty Bedrock Converse output");
+  }
+  if (!("message" in out) || !out.message?.content?.length) {
+    throw new Error("Unexpected Converse output shape");
+  }
+  const texts = out.message.content
+    .filter((block) => block && typeof block.text === "string")
+    .map((block) => block.text);
+  const joined = texts.join("\n").trim();
+  if (!joined) {
+    throw new Error("Empty Bedrock response text");
+  }
+  return joined;
+}
+
 async function callBedrockOnce(decisionText) {
   const modelId = getModelId();
   const region = getRegion();
   const client = new BedrockRuntimeClient({ region });
 
   const userText = buildTimelineUserPrompt(decisionText);
-  const payload = JSON.stringify({
-    anthropic_version: "bedrock-2023-05-31",
-    max_tokens: 900,
-    system: TIMELINE_SYSTEM_INSTRUCTION,
+
+  const command = new ConverseCommand({
+    modelId,
+    system: [{ text: TIMELINE_SYSTEM_INSTRUCTION }],
     messages: [
       {
         role: "user",
-        content: [{ type: "text", text: userText }],
+        content: [{ text: userText }],
       },
     ],
-  });
-
-  const command = new InvokeModelCommand({
-    modelId,
-    contentType: "application/json",
-    accept: "application/json",
-    body: new TextEncoder().encode(payload),
+    inferenceConfig: {
+      maxTokens: 900,
+    },
   });
 
   const response = await client.send(command);
-  const raw = new TextDecoder().decode(response.body);
-  const out = JSON.parse(raw);
-  const textBlock = out.content?.find((c) => c.type === "text");
-  if (!textBlock?.text) {
-    throw new Error("Empty Bedrock response text");
-  }
-  return textBlock.text;
+  return extractConverseText(response);
 }
 
 /**
