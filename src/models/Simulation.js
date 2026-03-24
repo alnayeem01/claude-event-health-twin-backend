@@ -33,7 +33,6 @@ const Simulation = sequelize.define(
     tableName: "simulations",
     timestamps: true,
     updatedAt: false,
-    createdAt: "created_at",
   }
 );
 

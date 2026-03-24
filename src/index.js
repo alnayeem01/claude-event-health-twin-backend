@@ -53,8 +53,18 @@ async function start() {
   await sequelize.sync(syncOptions);
   console.log("[db] models synced");
 
-  app.listen(PORT, () => {
+  const server = app.listen(PORT, () => {
     console.log(`API listening on http://localhost:${PORT}`);
+  });
+  server.on("error", (err) => {
+    if (err.code === "EADDRINUSE") {
+      console.error(
+        `[server] Port ${PORT} is in use. Stop the other process (e.g. lsof -i :${PORT}) or set PORT=3001 in .env`
+      );
+    } else {
+      console.error("[server] listen error", err);
+    }
+    process.exit(1);
   });
 }
 

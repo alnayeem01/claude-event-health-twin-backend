@@ -1,5 +1,5 @@
 const { Decision, Simulation } = require("../models");
-const { generateSimulationTimelines } = require("../services/claude");
+const { generateSimulationTimelines } = require("../services/llm");
 
 async function createSimulation(req, res) {
   const decisionText = req.validatedDecision;
@@ -21,6 +21,26 @@ async function createSimulation(req, res) {
     universes = await generateSimulationTimelines(decisionText);
   } catch (err) {
     console.error("[simulation] AI failure", err);
+    const status = err.status;
+    const awsHttp = err.$metadata?.httpStatusCode;
+    const throttled =
+      status === 429 ||
+      awsHttp === 429 ||
+      err.name === "ThrottlingException" ||
+      err.name === "TooManyRequestsException";
+
+    if (throttled) {
+      return res.status(429).json({
+        error:
+          "Model provider rate limit exceeded. Retry later or adjust quota / billing (Gemini AI Studio or AWS Bedrock).",
+      });
+    }
+    if (status === 404) {
+      return res.status(502).json({
+        error:
+          "LLM model not found. Set GEMINI_MODEL (Gemini) or BEDROCK_MODEL_ID + AWS_REGION (Bedrock).",
+      });
+    }
     return res.status(502).json({
       error: "AI response failed or could not be parsed",
     });
