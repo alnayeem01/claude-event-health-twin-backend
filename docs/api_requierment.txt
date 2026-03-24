@@ -1,0 +1,361 @@
+Project context:
+AI Decision Parallel Universe Simulator for the hackathon at Imperial College London using Claude from Anthropic.
+
+Frontend flow:
+User submits a decision → backend calls Claude → backend returns two future timelines.
+
+The backend must support fast development, simple architecture, and reliable AI responses.
+
+Backend Architecture Document
+1. Backend Stack
+
+Required technologies:
+
+Runtime: Node.js
+Framework: Express.js
+ORM: Sequelize
+Database: PostgreSQL (local development)
+AI provider: Claude API
+Environment config: dotenv
+HTTP client: axios (optional if Claude SDK not used)
+2. Backend Responsibilities
+
+The backend will:
+
+Accept a decision input from frontend
+Validate input
+Send structured prompt to Claude
+Receive AI-generated futures
+Store the simulation result
+Return structured JSON for frontend rendering
+3. Database Design
+
+Two core tables are required.
+
+Table 1: Decisions
+
+Purpose: store the original user decision.
+
+Fields:
+
+id
+decision_text
+created_at
+updated_at
+
+Example stored data:
+
+Decision example:
+
+"Should I quit my job to start a startup?"
+
+Table 2: Simulations
+
+Purpose: store AI-generated timeline outputs.
+
+Fields:
+
+id
+decision_id (foreign key)
+universe_a (JSON)
+universe_b (JSON)
+created_at
+
+Universe data format example:
+
+Universe A
+
+2026 → story text
+2027 → story text
+2028 → story text
+2029 → story text
+2030 → story text
+
+Universe B
+
+same structure.
+
+4. API Endpoints
+
+Only 3 APIs are required for the hackathon MVP.
+
+API 1 — Generate Simulation
+
+Endpoint
+
+POST
+/api/simulation
+
+Purpose
+
+Main API used by frontend.
+
+Accepts a user decision and generates two future timelines.
+
+Request Body
+
+decision
+
+Example
+
+"Should I quit my job to start a startup?"
+
+Processing Flow
+
+1 Receive request
+2 Validate decision text
+3 Save decision to database
+4 Generate AI prompt
+5 Call Claude API
+6 Parse Claude response
+7 Store simulation in database
+8 Return structured response to frontend
+
+Response Format
+
+The frontend requires structured JSON.
+
+Response example:
+
+Universe A
+
+year: 2026
+story: narrative text
+
+year: 2027
+story: narrative text
+
+Universe B
+
+year: 2026
+story: narrative text
+
+year: 2027
+story: narrative text
+
+Frontend will display this side-by-side.
+
+Error Responses
+
+Possible failures:
+
+Invalid input
+AI response parsing failure
+Claude API timeout
+Database write error
+
+Return:
+
+error message
+status code
+
+API 2 — Get Simulation History
+
+Endpoint
+
+GET
+/api/simulation/history
+
+Purpose
+
+Optional but useful for demo.
+
+Returns previous simulations created.
+
+Response includes
+
+decision text
+simulation result
+creation date
+
+Limit response to last 10 records.
+
+API 3 — Get Single Simulation
+
+Endpoint
+
+GET
+/api/simulation/:id
+
+Purpose
+
+Retrieve one simulation result.
+
+Frontend may use this if navigation or sharing is added.
+
+Response returns
+
+decision
+universeA timeline
+universeB timeline
+
+5. Claude Prompt Requirements
+
+Backend must generate structured prompts.
+
+Claude must return strict JSON output.
+
+Required JSON format:
+
+universeA
+
+list of objects
+each object contains:
+
+year
+story
+
+universeB
+
+same structure.
+
+6. AI Generation Rules
+
+Claude prompt must instruct the model to:
+
+Simulate two futures.
+
+Universe A
+User takes the decision.
+
+Universe B
+User does not take the decision.
+
+Each universe must contain:
+
+5 year timeline.
+
+Each year includes:
+
+year
+short narrative event
+
+Narratives should focus on:
+
+career
+relationships
+personal growth
+possible regrets
+happiness outcomes
+
+Stories should be realistic, not fantasy.
+
+7. Backend Validation Rules
+
+Before sending to Claude:
+
+Decision text must
+
+not be empty
+be longer than 5 characters
+be shorter than 300 characters
+
+Reject invalid input.
+
+8. Claude API Integration Requirements
+
+Claude model recommended
+
+Claude Sonnet tier (balanced speed and quality)
+
+Token limit
+
+700–900 tokens per request.
+
+Timeout handling required.
+
+If Claude response cannot be parsed as JSON:
+
+retry once.
+
+9. Performance Requirements
+
+Hackathon demo requires fast responses.
+
+Target response time:
+
+3–6 seconds.
+
+Backend must:
+
+avoid unnecessary DB queries
+avoid heavy processing
+send AI request immediately after validation
+
+10. Security Considerations
+
+Minimum required protections:
+
+Input sanitization
+JSON parsing safety
+API key stored in environment variables
+CORS enabled only for frontend origin
+
+11. Environment Variables
+
+Backend requires the following environment configuration.
+
+Database credentials
+
+Postgres host
+database name
+username
+password
+
+AI configuration
+
+Claude API key
+
+Server configuration
+
+port number
+
+12. Logging Requirements
+
+Backend should log:
+
+incoming decision request
+AI request start
+AI response received
+simulation saved
+
+Errors must log:
+
+AI failures
+database failures
+JSON parsing errors
+
+13. Expected Frontend Interaction
+
+Frontend will call only one main endpoint.
+
+Flow
+
+User types decision
+Frontend calls simulation API
+Backend returns two timelines
+Frontend displays side-by-side universes
+
+No authentication required for hackathon demo.
+
+14. Future Expansion (Optional)
+
+If time allows, backend could support:
+
+shareable simulation links
+user accounts
+decision analytics
+simulation comparison
+
+These are not required for hackathon MVP.
+
+Final Backend Deliverables
+
+Backend developer must deliver:
+
+1 Running Express API server
+2 PostgreSQL database connection
+3 Sequelize models for decisions and simulations
+4 Claude integration service
+5 Simulation generation endpoint
+6 Structured JSON response compatible with frontend
