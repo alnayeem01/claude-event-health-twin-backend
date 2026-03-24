@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Health Twin — CBC Hackathon Deck</title>
+  <style>
+    @page { size: landscape; margin: 12mm; }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+      background: #0f1419;
+      color: #e8eaed;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+    .slide {
+      min-height: 100vh;
+      padding: 3rem 3.5rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      page-break-after: always;
+      border-bottom: 1px solid #2a3441;
+    }
+    .slide:last-child { page-break-after: auto; border: none; }
+    h1 {
+      font-size: 2.1rem;
+      font-weight: 700;
+      margin: 0 0 0.35rem;
+      letter-spacing: -0.02em;
+      color: #fff;
+    }
+    h2 {
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: #7dd3c0;
+      margin: 0 0 1.25rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+    p, li { font-size: 1rem; line-height: 1.45; color: #c4c9d1; margin: 0 0 0.65rem; }
+    ul { margin: 0.5rem 0 0; padding-left: 1.2rem; }
+    li { margin-bottom: 0.4rem; }
+    .meta { font-size: 0.88rem; color: #8b95a5; margin-top: auto; padding-top: 2rem; }
+    .accent { color: #f0c674; font-weight: 600; }
+    @media print {
+      body { background: #0f1419; }
+      .slide { min-height: auto; height: 100vh; padding: 2rem 2.5rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <section class="slide">
+    <h2>Claude Builder Club · Imperial · Spring 2026</h2>
+    <h1>Health Twin</h1>
+    <p>See how today’s habits might shape your <span class="accent">future self</span> — with clear numbers, plain-language insight, and AI that supports your choices.</p>
+    <p class="meta">Track: Biology &amp; Physical Health · Social impact prototype</p>
+  </section>
+
+  <section class="slide">
+    <h2>The problem</h2>
+    <p>Health advice is everywhere, but it rarely feels <em>personal</em> or <em>actionable</em>. People struggle to connect sleep, stress, diet, and movement to long-term risk — especially when information is dense, expensive, or buried in jargon.</p>
+    <ul>
+      <li>Hard to reason about tradeoffs (“what if I fix sleep but stress stays high?”)</li>
+      <li>Low health literacy blocks better decisions before care is even needed</li>
+    </ul>
+  </section>
+
+  <section class="slide">
+    <h2>Who it’s for</h2>
+    <p><span class="accent">Busy students and young professionals</span> who want a lightweight, honest mirror — not a diagnosis — to motivate small, realistic changes before problems compound.</p>
+    <ul>
+      <li>Someone who already tracks life in their head but wants structure</li>
+      <li>Anyone who benefits from <em>explainable</em> scores + narrative insight</li>
+    </ul>
+  </section>
+
+  <section class="slide">
+    <h2>What we built (prototype)</h2>
+    <ul>
+      <li><strong>Inputs:</strong> age, body metrics, sleep, stress, exercise, screen time, diet</li>
+      <li><strong>Transparent model:</strong> BMI, overall score, heart / burnout / cognitive risk, projected “health age”</li>
+      <li><strong>Claude (Bedrock):</strong> structured insight — observation, risk framing, recommendation, “why,” how to improve</li>
+      <li><strong>History:</strong> save and revisit past runs to see change over time</li>
+    </ul>
+  </section>
+
+  <section class="slide">
+    <h2>Human impact</h2>
+    <p>AI here <span class="accent">clarifies and coaches</span>; it doesn’t replace clinicians. The goal is agency: understand patterns, name one or two levers, and feel less alone in improving habits.</p>
+    <ul>
+      <li>Reduces “mystery” around lifestyle and downstream risk</li>
+      <li>Supports dignity — suggestions, not commands</li>
+    </ul>
+  </section>
+
+  <section class="slide">
+    <h2>Ethics &amp; safeguards</h2>
+    <ul>
+      <li><strong>Not medical advice</strong> — clear handoff when professional care is needed</li>
+      <li><strong>Honest limits</strong> — model confidence and uncertainty surfaced</li>
+      <li><strong>Privacy</strong> — health-adjacent data treated seriously in any deployment</li>
+      <li><strong>Bias &amp; fairness</strong> — scores are illustrative; real populations need validation and inclusive testing</li>
+    </ul>
+  </section>
+
+  <section class="slide">
+    <h2>Technical snapshot</h2>
+    <ul>
+      <li>Node/Express API: validation, deterministic <code style="color:#7dd3c0">computeHealth</code>, Bedrock insight generation, persisted runs</li>
+      <li>React frontend aligned with the same health logic for consistent UX</li>
+      <li>End-to-end demo: simulate → insight → history</li>
+    </ul>
+  </section>
+
+  <section class="slide">
+    <h2>Submission &amp; thanks</h2>
+    <p><strong>Devpost:</strong> <span style="word-break:break-all;">https://claude-hackathon-at-imperial.devpost.com/</span></p>
+    <p>Thank you to Imperial CBC, Anthropic’s “Machines of Loving Grace” vision, and our judges — we’re excited to keep building tools where AI helps people flourish.</p>
+    <p class="meta">Questions welcome · Health Twin team</p>
+  </section>
+
+</body>
+</html>

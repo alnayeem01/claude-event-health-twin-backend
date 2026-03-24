@@ -1,5 +1,6 @@
 const { Decision } = require("./Decision");
 const { Simulation } = require("./Simulation");
+const { HealthRun } = require("./HealthRun");
 
 Decision.hasMany(Simulation, {
   foreignKey: "decisionId",
@@ -8,4 +9,4 @@ Decision.hasMany(Simulation, {
 });
 Simulation.belongsTo(Decision, { foreignKey: "decisionId", as: "decision" });
 
-module.exports = { Decision, Simulation };
+module.exports = { Decision, Simulation, HealthRun };
