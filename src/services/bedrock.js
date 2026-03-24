@@ -7,6 +7,11 @@ const {
   buildTimelineUserPrompt,
   parseUniverseResponse,
 } = require("../lib/universeTimeline");
+const {
+  HEALTH_INSIGHT_SYSTEM_INSTRUCTION,
+  buildHealthInsightUserPrompt,
+  parseHealthInsightResponse,
+} = require("../lib/healthInsight");
 
 const DEFAULT_MODEL_ID =
   "anthropic.claude-3-5-sonnet-20241022-v2:0";
@@ -66,6 +71,53 @@ async function callBedrockOnce(decisionText) {
   return extractConverseText(response);
 }
 
+async function callBedrockHealthInsightOnce(inputs, metrics) {
+  const modelId = getModelId();
+  const region = getRegion();
+  const client = new BedrockRuntimeClient({ region });
+  const userText = buildHealthInsightUserPrompt(inputs, metrics);
+
+  const command = new ConverseCommand({
+    modelId,
+    system: [{ text: HEALTH_INSIGHT_SYSTEM_INSTRUCTION }],
+    messages: [
+      {
+        role: "user",
+        content: [{ text: userText }],
+      },
+    ],
+    inferenceConfig: {
+      maxTokens: 1200,
+    },
+  });
+
+  const response = await client.send(command);
+  return extractConverseText(response);
+}
+
+/**
+ * @param {object} inputs
+ * @param {object} metrics
+ * @returns {Promise<{ observation: string, risk: string, recommendation: string, explainWhy: string, howToImprove: string }>}
+ */
+async function generateHealthInsight(inputs, metrics) {
+  let lastErr;
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    try {
+      const raw = await callBedrockHealthInsightOnce(inputs, metrics);
+      return parseHealthInsightResponse(raw);
+    } catch (err) {
+      lastErr = err;
+      console.error("[bedrock] health insight parse or API failure", {
+        attempt: attempt + 1,
+        message: err.message,
+        name: err.name,
+      });
+    }
+  }
+  throw lastErr;
+}
+
 /**
  * @param {string} decisionText
  * @returns {Promise<{ universeA: object[], universeB: object[] }>}
@@ -90,4 +142,5 @@ async function generateSimulationTimelines(decisionText) {
 
 module.exports = {
   generateSimulationTimelines,
+  generateHealthInsight,
 };

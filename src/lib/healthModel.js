@@ -1,6 +1,6 @@
 /**
- * Mirrors claude-health-frontend/src/components/futureself/types.ts computeHealth.
- * @param {import("../middleware/validateHealthBody").LifestyleInputs} i
+ * Mirrors claude-health-frontend computeHealth (types.ts).
+ * @param {Record<string, number>} i lifestyle fields
  */
 function computeHealth(i) {
   const heightM = i.height * 0.0254;

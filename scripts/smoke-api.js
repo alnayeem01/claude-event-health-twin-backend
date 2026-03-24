@@ -117,6 +117,50 @@ async function main() {
     if (r.status !== 400) throw new Error(`expected 400, got ${r.status}`);
   });
 
+  await check("GET /api/health/history", async () => {
+    const r = await fetch(`${BASE}/api/health/history`);
+    if (!r.ok) throw new Error(`status ${r.status}`);
+    const j = await r.json();
+    if (!Array.isArray(j.history)) throw new Error("missing history array");
+  });
+
+  await check("GET /api/health/notanid → 400", async () => {
+    const r = await fetch(`${BASE}/api/health/notanid`);
+    if (r.status !== 400) throw new Error(`expected 400, got ${r.status}`);
+  });
+
+  await check("GET /api/health/999999999 → 404", async () => {
+    const r = await fetch(`${BASE}/api/health/999999999`);
+    if (r.status !== 404) throw new Error(`expected 404, got ${r.status}`);
+  });
+
+  await check("POST /api/health/simulate empty → 400", async () => {
+    const r = await fetch(`${BASE}/api/health/simulate`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({}),
+    });
+    if (r.status !== 400) throw new Error(`expected 400, got ${r.status}`);
+  });
+
+  await check("POST /api/health/simulate invalid age → 400", async () => {
+    const r = await fetch(`${BASE}/api/health/simulate`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        age: 10,
+        height: 67,
+        weight: 70,
+        sleep: 7,
+        stress: 5,
+        exercise: 3,
+        screenTime: 5,
+        diet: 6,
+      }),
+    });
+    if (r.status !== 400) throw new Error(`expected 400, got ${r.status}`);
+  });
+
   const hasAwsCreds =
     Boolean(process.env.AWS_ACCESS_KEY_ID) ||
     Boolean(process.env.AWS_PROFILE) ||
@@ -158,9 +202,64 @@ async function main() {
         clearTimeout(t);
       }
     });
+
+    await check("POST /api/health/simulate (Bedrock)", async () => {
+      const controller = new AbortController();
+      const t = setTimeout(() => controller.abort(), 120_000);
+      try {
+        const r = await fetch(`${BASE}/api/health/simulate`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            age: 28,
+            height: 68,
+            weight: 72,
+            sleep: 7,
+            stress: 5,
+            exercise: 3,
+            screenTime: 5,
+            diet: 6,
+          }),
+          signal: controller.signal,
+        });
+        if (r.status === 429) {
+          const body = await r.json().catch(() => ({}));
+          throw new Error(
+            `429 — ${body.error || "Provider rate limit / quota exceeded."}`
+          );
+        }
+        if (r.status === 502) {
+          throw new Error(
+            "502 — LLM parse failed, bad model id, or missing Bedrock model access"
+          );
+        }
+        if (r.status !== 201) {
+          throw new Error(`expected 201, got ${r.status}`);
+        }
+        const j = await r.json();
+        if (!j.metrics || typeof j.metrics.overallScore !== "number") {
+          throw new Error("missing metrics");
+        }
+        const ins = j.insight;
+        if (
+          !ins?.observation ||
+          !ins?.risk ||
+          !ins?.recommendation ||
+          !ins?.explainWhy ||
+          !ins?.howToImprove
+        ) {
+          throw new Error("missing insight fields");
+        }
+      } finally {
+        clearTimeout(t);
+      }
+    });
   } else {
     console.log(
       "[smoke] SKIP POST /api/simulation — set AWS_ACCESS_KEY_ID + AWS_SECRET_ACCESS_KEY (or AWS_PROFILE) and AWS_REGION"
+    );
+    console.log(
+      "[smoke] SKIP POST /api/health/simulate — same AWS/Bedrock requirements"
     );
   }
 

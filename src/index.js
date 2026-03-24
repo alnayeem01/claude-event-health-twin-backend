@@ -5,9 +5,10 @@ const express = require("express");
 const { sequelize } = require("./config/database");
 require("./models");
 const { simulationRouter } = require("./routes/simulation");
+const { healthRouter } = require("./routes/health");
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3001;
 
 function corsOptions() {
   const raw = process.env.FRONTEND_ORIGIN;
@@ -38,6 +39,7 @@ app.get("/health", (_req, res) => {
 });
 
 app.use("/api/simulation", simulationRouter);
+app.use("/api/health", healthRouter);
 
 async function start() {
   try {
